@@ -1,48 +1,64 @@
-This is a template you can use for your final projects (as well other projects where you need to post replication code.) Fill in each section with information on your own project.
 
 ## Short Description
 
-Give a short, 1-2 paragraph description of your project. Focus on the code, not the theoretical / substantive side of things. 
+This code analyzes and visualises Jeremy Corbyn's and Boris Johnson's responses to questions posed during 3 debates held prior to the 2019 UK general election.
 
 ## Dependencies
 
 List what software your code depends on, as well as version numbers, like so:.
 
 1. R, 3.6.1
-
-In your scripts, includes commands that `require()` packages.
+2. Package - tidyverse
+3. Package - wordcloud
+4. Package - tidytext
+5. Package - tm
+6. Package - stm
+7. Package - ggplot2
+8. Package - getcaption
 
 ## Files
-
-List all files (other than `README.md` and `Final-Project.RProj`) contained in the repo, along with a brief description of each one, like so:
 
 #### /
 
 1. Narrative.Rmd: Provides a 3-5 page narrative of the project, main challenges, solutions, and results.
-2. Narrative.pdf: A knitted pdf of 00_Narrative.Rmd. 
-3. Slides.XXX: Your lightning talk slides, in whatever format you prefer.
+2. Narrative.pdf: A knitted pdf of Narrative.Rmd. 
+3. Slides.pptx: Slides for my lightning talk.
 
 #### Code/
-1. 01_collect-nyt.R: Collects data from New York Times API and exports data to the file nyt.csv
-2. 02_merge-data.R: Loads, cleans, and merges the raw Polity and NYT datasets into the Analysis Dataset.
-3. 03_analysis.R: Conducts descriptive analysis of the data, producing the tables and visualizations found in the Results directory.
+1. 01_cleaning_pre_processing.R: Collects data from youtube API and preprocesses the final data frame I created for sentiment analysis and the topic model.
+2. 02_analysis.R: Conducts descriptive analysis of the data, producing the tables and visualizations found in the Results directory.
+3. 03_Final_Project_Code.Rmd - The R markdown document containing all my code. I developed my code in this file.
 
 #### Data/
 
-1. polity.csv: The PolityVI dataset, available here: http://www.systemicpeace.org/inscrdata.html
-2. nyt.csv: Contains data from the New York Times API collected via collect-nyt.ipynb . Includes information on all articles containing the term "Programmer Cat", 1980-2010.
-3. analysis-dataset.csv: The final Analysis Dataset derived from the raw data above. It includes country-year values for all UN countries 1980-2010, with observations for the following variables: 
-    - *ccode*: Correlates of War numeric code for country observation
-    - *year*: Year of observation
-    - *polity*: PolityVI score
-    - *nyt*: Number of New York Times articles about "Programmer Cat"
-
+1. Plain Text Transcripts - Folder contains 3 plain text transcripts of each debate.
+2. Scraped Captions - Folder contains 3 .csv files of closed captions scraped from youtube.
+3. Debate_Data.csv: The final Analysis Dataset derived from the raw data above and manuall coded. Each observation is a unique responses from each candidate and it includes the following variables:
+    - *Date*: Date the debate took place
+    - *Event*: The name of the debate
+    - *Speaker*: The Candidate speaking
+    - *Question*: The question to which the candidate is responding
+    - *Response*: The candidate's response
+    
 #### Results/
-
-1. coverage-over-time.jpeg: Graphs the number of articles about each region over time.
-2. regression-table.txt: Summarizes the results of OLS regression, modelling *nyt* on a number of covariates.
+1. 01_Wordcloud.jpg - A wordcloud of words used during the debate
+2. 02_Sentiments_Overall.jpg - Sentiments of the documents overall
+3. 03_Sentiments_Candidate.jpg - Sentiments of the documents by candidate
+4. 04_Boxplot.jpg - A boxplot showing how sentiments varied across each candidate and event
+5. 05_Topics.jpg - The topics produced by the unsupervised topic model
+6. 06_Progress.jpg - Expected proportions for each candidate for topic 1
+7. 07_Poverty - Expected proportions for each candidate for topic 2
+8. 08_Health - Expected proportions for each candidate for topic 3
+9. 09_Referenda_Union - Expected proportions for each candidate for topic 4
+10. 10 - Expected proportions for each candidate for topic 5
 
 ## More Information
 
-Include any other details you think your user might need to reproduce your results. You may also include other information such as your contact information, credits, etc.
+Author name: Hani Warith
+Email: hwarith[at]uchicago.edu 
+
+Date of the British general election: December 12, 2019
+
+Thank you for visiting my repository! 
+
 
