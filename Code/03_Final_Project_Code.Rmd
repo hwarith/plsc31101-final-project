@@ -1,0 +1,228 @@
+---
+title: "Untitled"
+author: "Hani Warith"
+date: "11/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Packages}
+#Loading necessary packages
+
+library(tm) 
+library(tidyverse)
+library(ggplot2) 
+library(wordcloud) 
+library(stm)
+library(tidytext)
+```
+
+
+```{r}
+#Scraping captions from Youtube API
+
+library(youtubecaption)
+
+get_caption("https://www.youtube.com/watch?v=9kEB5pqWpJw", savexl= T, openxl= T)
+```
+
+```{r}
+#Scraping captions from youtube API
+
+library(youtubecaption)
+
+get_caption("https://www.youtube.com/watch?v=60XxX5r2_XI", savexl= T, openxl= T)
+
+```
+
+
+```{r}
+#Scraping captions from Youtube API
+
+library(youtubecaption)
+
+get_caption("https://www.youtube.com/watch?v=sbE-emYnHJk", savexl= T, openxl= T)
+
+```
+
+```{r}
+#Loading cleaned and tidy dataframe of documents and metadata 
+
+debate_responses_df <- read.csv("~/Data/Debate_Data.csv")
+
+```
+
+```{r}
+#Preprocessing for Sentiment analysis 
+
+library(tm)
+debate_responses<-Corpus(VectorSource(debate_responses_df$Response))
+debate_responses <- DocumentTermMatrix(debate_responses,
+           control = list(stopwords = TRUE,
+                          tolower = TRUE,
+                          removeNumbers = TRUE,
+                          removePunctuation = TRUE))
+```
+
+```{r}
+#Dimensions of preprocessed 
+
+dim(debate_responses)
+```
+
+```{r}
+#Inspecting data
+
+frequency <- colSums(as.matrix(debate_responses))
+debate_responses_ordered <- debate_responses[,order(frequency, decreasing = T)]
+inspect(debate_responses_ordered[1:5,1:5])
+```
+
+```{r}
+#Looking at top words used in debate
+
+sorted_responses <- sort(frequency, decreasing = T)
+
+
+head(sorted_responses)
+```
+
+```{r}
+#Looking at words correlated with Brexit and NHS
+
+findAssocs(debate_responses, "brexit", 0.3)
+findAssocs(debate_responses, "nhs", 0.3)
+```
+
+```{r}
+#Making a WordCloud - Figure 1
+
+set.seed(29)
+
+wordcloud(names(sorted_responses), sorted_responses, max.words=100, colors=brewer.pal(6,"Dark2"))
+
+```
+
+```{r}
+#Setting up dictionary for sentiment analysis
+sentiments <- get_sentiments("bing")
+sentiments$core <-ifelse(sentiments$sentiment=="positive", 1, -1)
+```
+
+```{r}
+words <- data.frame(word = colnames(debate_responses_ordered))
+head(words)
+
+words <- merge(words,sentiments, all.x=T)
+words$core[is.na(words$core)] <- 0
+```
+
+```{r}
+scores <- as.matrix(debate_responses) %*% words$core
+
+
+# put it in the original documents data frame
+debate_responses_df$sentiments <- scores
+debate_responses_df
+```
+
+```{r}
+
+debate_responses_df<-debate_responses_df %>% 
+  group_by(Speaker) %>% 
+  filter(Speaker=="Jeremy Corbyn"|Speaker=="Boris Johnson") 
+
+debate_responses_df %>%
+  summarize(Mean_Sentiment=mean(sentiments))
+```
+
+```{r}
+ggplot(debate_responses_df, aes(x = sentiments))+
+    geom_histogram(stat = "count", fill="red")+xlab("Sentiments")+ylab("Count")+ggtitle("Sentiments of Candidate's Responses")
+```
+
+```{r}
+#Sentiments for each speaker
+ggplot(data = debate_responses_df, aes(x = sentiments)) +
+  geom_histogram(fill="blue") + 
+  facet_wrap( ~ Speaker) + xlab("Sentiments")+ ylab("Count")+ggtitle("Sentiments by Candidate")
+```
+
+```{r}
+#Boxplot for each candidate for each event
+
+ggplot(debate_responses_df, aes(x=Event, y=sentiments)) +  geom_boxplot() + facet_wrap( ~ Speaker) + theme(axis.text.x = element_text(size = 8, angle = 45, hjust = 1))+ylab("Sentiments")+ggtitle("Sentiments by Candidate in Each Debate")
+```
+
+
+
+
+```{r}
+# Pre-processing for Topic Model
+temp<-textProcessor(documents = debate_responses_df$Response, metadata = debate_responses_df)
+
+meta<-temp$meta
+vocab<-temp$vocab
+docs<-temp$documents
+
+out <- prepDocuments(docs, vocab, meta)
+
+docs<-out$documents
+vocab<-out$vocab
+meta <-out$meta
+```
+
+```{r}
+model <- stm(docs, vocab, 5, data = meta, seed = 15, max.em.its = 15)
+
+labelTopics(model)
+
+labels <- c("Progress", "Poverty", "Health Care", " Referenda and Union", "Economy")
+```
+
+```{r}
+# Corpus Summary
+plot.STM(model, type="summary", custom.labels = labels, main="")
+```
+
+```{r}
+# Estimate Covariate Effects
+prep <- estimateEffect(1:5 ~ Speaker, model, meta = meta, uncertainty = "Global", documents=docs)
+```
+
+
+```{r}
+Speakers <- c("Corbyn", "Johnson")
+plot.estimateEffect(prep, "Speaker", method = "pointestimate", topics = 1, printlegend = TRUE, labeltype = "custom", custom.labels = Speakers, main = "Progress", ci.level = .95, nsims=100)
+```
+
+```{r}
+Speakers <- c("Corbyn", "Johnson")
+plot.estimateEffect(prep, "Speaker", method = "pointestimate", topics = 2, printlegend = TRUE, labeltype = "custom", custom.labels = Speakers, main = "Poverty", ci.level = .95, nsims=100)
+```
+
+```{r}
+Speakers <- c("Corbyn", "Johnson")
+plot.estimateEffect(prep, "Speaker", method = "pointestimate", topics = 3, printlegend = TRUE, labeltype = "custom", custom.labels = Speakers, main = "Health Care", ci.level = .95, nsims=100)
+```
+
+```{r}
+Speakers <- c("Corbyn", "Johnson")
+plot.estimateEffect(prep, "Speaker", method = "pointestimate", topics = 4, printlegend = TRUE, labeltype = "custom", custom.labels = Speakers, main = "Referenda and Union", ci.level = .95, nsims=100)
+```
+
+```{r}
+Speakers <- c("Corbyn", "Johnson")
+plot.estimateEffect(prep, "Speaker", method = "pointestimate", topics = 5, printlegend = TRUE, labeltype = "custom", custom.labels = Speakers, main = "The Economy", ci.level = .95, nsims=100)
+```
+
+
